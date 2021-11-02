@@ -8,38 +8,52 @@ This assignment covers making a function in R, documenting it, and testing it. F
 We begin by loading the `tidyverse` package below:
 
 ```{r packages}
-suppressMessages(library(tidyverse))
+suppressPackageStartupMessages(library(tidyverse))
 ```
 
 
-## Exercise 1: Make a Function
+## Exercise 1 & 2: Make a Function and Documentation
 
-One of the plots that I have found very useful when working on a new dataset is the distribution of variables. Below, I wrote a function to plot the distribution given the data and the variable's name. The function handles both categorical and numerical data. Also, I have tried to provide as much information as possible within the output plot. For example, I am indicating the mean of the numerical variable with a vertical line.
+One of the plots that I have found very useful when working on a new dataset is the distribution of variables. Below, I wrote a function to plot the distribution given the data and the variable's name. The function handles both categorical and numerical data. Also, I have tried to provide as much information as possible within the output plot. For example, I am indicating the mean of the numerical variable with a vertical line. At last, We document the function modules using `roxygen2` tags.
 
 ```{r function}
-quick_dist <- function(data, variable_name, na.rm = TRUE){
+
+#' @title quick_dist: quick distribution plotting of variables in a data frame
+#' 
+#' @description quick_dist function takes two arguments as the input, a data frame and one of its columns. It plots the distribution of the given variable in the dataset.
+#' 
+#' @param df: A data frame object. The output plot is based on one of df's variables. Since it should be a data frame, we have called it "df," the initials of the data frame.
+#' 
+#' @param var_name: A variable (column) in characters format in the provided data frame, df. It should be an object of numeric, factor (categorical), or character classes. If numeric, the output is the density plot of the distribution. If factor or character, the output is a bar chart of frequencies of categories. Since it reflects the name of a variable in characters (double quotations), we have called it "var_name" in the function's body.
+#' 
+#' @param na.rm: If TRUE, the default, missing values are silently removed. If FALSE, missing values are removed with a warning. We have got the name by putting together the words NA and remove.
+#' 
+#' @return: A plotted distribution based on the given column in the data frame input. Based on the class of input variable, it is either a density plot of the distribution or a bar chart of counts of categories.
+#'  
+
+quick_dist <- function(df, var_name, na.rm = TRUE){
   
-  if (!is.data.frame(data)){
-    stop('The parameter data should be a data frame object.\n',
-         'You have provided an object of class: ', class(data)[1])
+  if (!is.data.frame(df)){
+    stop('The parameter df should be a data frame object.\n',
+         'You have provided an object of class: ', class(df)[1])
   }
   
-  if (!is.character(variable_name)){
-    stop('The parameter variable_name requires a character input.\n',
-         'You have provided an object of class: ', class(variable_name)[1])
+  if (!is.character(var_name)){
+    stop('The parameter var_name requires a character input.\n',
+         'You have provided an object of class: ', class(var_name)[1])
   }
   
-  if (!variable_name %in% colnames(data)){
-    stop('The variable name parameter does 
+  if (!var_name %in% colnames(df)){
+    stop('The var_name parameter does 
          not exist in the provided data frame.\n')
   }
-  variable_name <- as.name(variable_name)
-  var <- data[[variable_name]]
+  var_name <- as.name(var_name)
+  var <- df[[var_name]]
   
   if (!is.numeric(var) &&
       !is.factor(var) &&
       !is.character(var)){
-    stop("The column specified by the parameter variable_name
+    stop("The column specified by the parameter var_name
          requries a numeric, factor or character variable, \n",
          'You have provided an object of class: ', class(var)[1])
       }
@@ -47,42 +61,37 @@ quick_dist <- function(data, variable_name, na.rm = TRUE){
   if (is.numeric(var)){
     
     mu <- mean(var, na.rm = na.rm)
-    plt <- ggplot(data = data) +
+    plt <- ggplot(data = df) +
       geom_density(aes(var), na.rm = na.rm, fill = 'dodgerblue', alpha = 0.5) +
       geom_vline(aes(xintercept=mu), linetype="dashed", color='red') +
       theme_bw() +
-      xlab(variable_name)
+      xlab(var_name)
   }
   
   else if (is.factor(var) || is.character(var)){
     
-    plt <- data %>%
-        filter(!is.na(!!variable_name)) %>%
-        ggplot(aes(!!variable_name)) +
+    plt <- df %>%
+        filter(!is.na(!!var_name)) %>%
+        ggplot(aes(!!var_name)) +
         geom_bar(na.rm = na.rm, fill='dodgerblue', width = 0.5) +
         theme_bw() +
-        xlab(variable_name)
+        xlab(var_name)
   }
   return(plt)
 }
 ```
 
-## Exercise 2: Document your Function
-
-
-```{r documentation}
-title 
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
-
 ## Exercise 3: Include examples 
 
-yoo
+Here, we demonstrate some use cases of our function in real-world datasets. We have used `gapminder` and `penguins` datasets for this purpose. Run the below code chunk to load these datasets.
 
-```{r}
+```{r Usage}
+
+suppressPackageStartupMessages(library(gapminder))
+suppressPackageStartupMessages(library(palmerpenguins))
 
 ```
+
 
 
 ## Exercise 4: Test the Function
