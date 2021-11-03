@@ -66,9 +66,14 @@ quick_dist <- function(df, var_name, na.rm = TRUE){
   if (is.numeric(var)){
     
     mu <- mean(var, na.rm = na.rm)
-    plt <- ggplot(data = df) +
-      geom_density(aes(var), na.rm = na.rm, fill = 'dodgerblue', alpha = 0.5) +
+    plt <- df %>%
+      filter(if (na.rm == TRUE) !is.na(!!var_name) else TRUE) %>%
+      
+      ggplot(aes(!!var_name)) +
+      
+      geom_density(fill = 'dodgerblue', alpha = 0.5) +
       geom_vline(aes(xintercept=mu), linetype="dashed", color='red') +
+      
       theme_bw() +
       xlab(var_name)
   }
@@ -76,9 +81,11 @@ quick_dist <- function(df, var_name, na.rm = TRUE){
   else if (is.factor(var) || is.character(var)){
     
     plt <- df %>%
-        filter(!is.na(!!var_name)) %>%
+        filter(if (na.rm == TRUE) !is.na(!!var_name) else TRUE) %>%
+      
         ggplot(aes(!!var_name)) +
-        geom_bar(na.rm = na.rm, fill='dodgerblue', width = 0.5) +
+        geom_bar(fill='dodgerblue', width = 0.5) +
+      
         theme_bw() +
         xlab(var_name)
   }
@@ -97,4 +104,131 @@ suppressPackageStartupMessages(library(gapminder))
 suppressPackageStartupMessages(library(palmerpenguins))
 ```
 
+First, we show the functionalities of our function on the `gapminder`’s
+variables. The first two examples are numerical columns, and the outputs
+are density distributions as expected. The last example includes a
+categorical variable in the data, which the output will be a bar plot of
+categories frequencies.
+
+``` r
+# Getting the distributions of the gapminder variables
+quick_dist(gapminder, "lifeExp") # a numeric variable distribution
+```
+
+![](AssignmentB1_files/figure-gfm/gapminder-1.png)<!-- -->
+
+``` r
+quick_dist(gapminder, "gdpPercap") # a numeric variable
+```
+
+![](AssignmentB1_files/figure-gfm/gapminder-2.png)<!-- -->
+
+``` r
+quick_dist(gapminder, "continent") # a categorical variable distribution
+```
+
+![](AssignmentB1_files/figure-gfm/gapminder-3.png)<!-- -->
+
+Here again, we show some examples of exploring variables of `penguins`
+using `quick_dist.` In the last example, we set the `na.rm` to `FALSE,`
+as you can see, we have a column of `NA` and its count. So the function
+also can be used to see how many `NA` values are in a variable.
+
+``` r
+# Getting the distributions of the penguins variables
+quick_dist(penguins, "bill_length_mm") # a numeric variable
+```
+
+![](AssignmentB1_files/figure-gfm/penguins-1.png)<!-- -->
+
+``` r
+quick_dist(penguins, "island") # a categorical variable
+```
+
+![](AssignmentB1_files/figure-gfm/penguins-2.png)<!-- -->
+
+``` r
+quick_dist(penguins, "sex", na.rm = FALSE) # a categorical variable with setting na.rm to FALSE
+```
+
+![](AssignmentB1_files/figure-gfm/penguins-3.png)<!-- -->
+
+In the next code section, we illustrate how things might go wrong when
+using the `quick_dist()` function and how they are handled in the
+function.
+
+``` r
+# invalid data frame input, in this case a numeric value
+df <- 1.1
+quick_dist(df, "lifeExp")
+```
+
+    ## Error in quick_dist(df, "lifeExp"): The parameter df should be a data frame object.
+    ## You have provided an object of class: numeric
+
+``` r
+# invalid variable name, should be a var name in characters
+quick_dist(gapminder, 1.2)
+```
+
+    ## Error in quick_dist(gapminder, 1.2): The parameter var_name requires a character input.
+    ## You have provided an object of class: numeric
+
+``` r
+quick_dist(gapminder, "life") # invalid variable name, should be a variable in gapminder dataset
+```
+
+    ## Error in quick_dist(gapminder, "life"): The var_name parameter does 
+    ##          not exist in the provided data frame.
+
 ## Exercise 4: Test the Function
+
+For writing tests for the function, first, we should load `testthat`
+package.
+
+``` r
+suppressPackageStartupMessages(library(testthat))
+```
+
+``` r
+# Creating two type of plots for testing
+
+plt1 <- quick_dist(gapminder, "lifeExp")
+plt2 <- quick_dist(gapminder, "continent")
+  
+test_that("Testing whether the output for a numeric variable are density and vlines plots and for a categorical, a bar chart.", {
+  
+  expect_true(
+        "GeomDensity" %in% class(plt1$layers[[1]]$geom) &&
+        "GeomVline" %in% class(plt1$layers[[2]]$geom)
+    )
+  expect_true(
+        "GeomBar" %in% class(plt2$layers[[1]]$geom)
+    )
+})
+```
+
+    ## Test passed 🌈
+
+``` r
+test_that("Testing whether aesthetic mappings are correct in both type of plots",
+      {
+        expect_equal(as.character(rlang::get_expr(plt1$mapping$x)), "lifeExp")
+        expect_equal(as.character(rlang::get_expr(plt2$mapping$x)), "continent")
+      })
+```
+
+    ## Test passed 🌈
+
+``` r
+test_that("Testing whether the function accept invalid input arguments",
+      {
+        expect_error(quick_dist("2", 12))
+        expect_error(quick_dist(2.3, "lifeExp"))
+        expect_error(quick_dist(gapminder, 1.23))
+        expect_error(quick_dist(gapminder, "aaaa"))
+        expect_error(quick_dist(gapminder, lifeExp))
+      })
+```
+
+    ## Test passed 😀
