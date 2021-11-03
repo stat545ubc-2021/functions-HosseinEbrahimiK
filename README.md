@@ -10,8 +10,8 @@ This repository contains materials of assignments 1 and 2 for the UBC course *[S
  
  ## Assignment Files
  Files are separated into two folders based on the corresponding assignment. In each assignment folder, you can find below files:
-1. *Github markdown (.md)*: [Assignment 1](/)
-2. *R markdown file (.rmd)*: [Assignment 1](/)
+1. *Github markdown (.md)*: [Assignment 1](/Assignment%201/AssignmentB1.Rmd)
+2. *R markdown file (.rmd)*: [Assignment 1](/Assignment%201/AssignmentB1.md)
 3. *Figure files*: Each Milestone file contains a folder to save plots produced by the `.rmd` file to render them in the GitHub `.md` file
 
  ## Code Execution
